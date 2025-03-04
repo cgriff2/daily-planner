@@ -6,12 +6,14 @@ const Home = () => {
   const { weather, loading, error, getWeather } = useWeather();
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-4">
-      <h1 className="text-2xl font-bold text-center mb-4">Daily Planner</h1>
-      <WeatherSearch onSearch={getWeather} />
-      {loading && <p>Loading...</p>}
-      {error && <p className="text-red-500">{error}</p>}
-      {weather && <WeatherDisplay weather={weather} />}
+    <div className="flex flex-col items-center justify-center min-h-screen p-4">
+      <div className="w-full max-w-md bg-white shadow-lg rounded-lg p-6">
+        <h1 className="text-2xl font-bold text-center mb-4">Daily Planner</h1>
+        <WeatherSearch onSearch={getWeather} />
+        {loading && <p>Loading...</p>}
+        {error && <p className="text-red-500">{error}</p>}
+        {weather && <WeatherDisplay weather={weather} />}
+      </div>
     </div>
   );
 };

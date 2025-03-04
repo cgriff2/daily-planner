@@ -15,13 +15,13 @@ const WeatherSearch: React.FC<WeatherSearchProps> = ({ onSearch }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2">
+    <form onSubmit={handleSubmit} className="flex gap-2 search-fields">
       <input
         type="text"
         value={city}
         onChange={(e) => setCity(e.target.value)}
         placeholder="Enter city..."
-        className="p-2 border rounded"
+        className="p-2 border rounded search"
       />
       <button type="submit" className="bg-blue-500 text-white p-2 rounded">
         Search
