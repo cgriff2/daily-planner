@@ -1,50 +1,69 @@
-// import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-// import { Task } from "../types";
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
-// interface TaskContextType {
-//   tasks: Task[];
-//   addTask: (text: string, time: string) => void;
-//   removeTask: (id: number) => void;
-// }
+export type Task = {
+  taskId: string;
+  title: string;
+  description: string;
+  date: string;
+  priority: 'low' | 'medium' | 'high';
+  completed: boolean;
+};
 
-// const TaskContext = createContext<TaskContextType | undefined>(undefined);
+type TaskContextType = {
+  tasks: Task[];
+  addTask: (task: Task) => void;
+  updateTask: (task: Task) => void;
+  toggleCompleted: (taskId: string) => void;
+  deleteTask: (taskId: string) => void;
+};
 
-// export const TaskProvider = ({ children }: { children: ReactNode }) => {
-//   const [tasks, setTasks] = useState<Task[]>([]);
+const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
-//   // On startup, load all tasks from local storage
-//   useEffect(() => {
-//     const storedTasks = localStorage.getItem("tasks");
-//     if (storedTasks) {
-//       setTasks(JSON.parse(storedTasks));
-//     }
-//   }, []);
+export const useTasks = (): TaskContextType => {
+  const context = useContext(TaskContext);
+  if (!context) {
+    throw new Error('useTasks must be used within a TaskProvider');
+  }
+  return context;
+};
 
-//   // Save tasks to local storage after changes are made
-//   useEffect(() => {
-//     localStorage.setItem("tasks", JSON.stringify(tasks));
-//   }, [tasks]);
+export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [tasks, setTasks] = useState<Task[]>([]);
 
-//   const addTask = (text: string, time: string, category: string, reminderTime?: string) => {
-//     const newTasks = [...tasks, { id: Date.now(), text, time, category, reminderTime }];
-//     setTasks(newTasks);
-//   };
+  // Load from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('tasks');
+    if (saved) {
+      setTasks(JSON.parse(saved));
+    }
+  }, []);
 
-//   const removeTask = (id: number) => {
-//     setTasks(tasks.filter((task) => task.id !== id));
-//   };
+  // Save to localStorage when tasks change
+  useEffect(() => {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+  }, [tasks]);
 
-//   return (
-//     <TaskContext.Provider value={{ tasks, addTask, removeTask }}>
-//       {children}
-//     </TaskContext.Provider>
-//   );
-// };
+  const addTask = (task: Task) => {
+    setTasks(prev => [...prev, task]);
+  };
 
-// export const useTaskContext = () => {
-//   const context = useContext(TaskContext);
-//   if (!context) {
-//     throw new Error("useTaskContext must be used within a TaskProvider");
-//   }
-//   return context;
-// };
+  const updateTask = (updatedTask: Task) => {
+    setTasks(prev => prev.map(t => (t.taskId === updatedTask.taskId ? updatedTask : t)));
+  };
+
+  const toggleCompleted = (taskId: string) => {
+    setTasks(prev =>
+      prev.map(t => (t.taskId === taskId ? { ...t, completed: !t.completed } : t))
+    );
+  };
+
+  const deleteTask = (taskId: string) => {
+    setTasks(prev => prev.filter(t => t.taskId !== taskId));
+  };
+
+  return (
+    <TaskContext.Provider value={{ tasks, addTask, updateTask, toggleCompleted, deleteTask }}>
+      {children}
+    </TaskContext.Provider>
+  );
+};
