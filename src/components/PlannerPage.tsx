@@ -20,12 +20,21 @@ const PlannerPage: React.FC = () => {
     return d.toISOString().split('T')[0];
   });
 
-  const weeklyTasks = tasks.filter(t => weekDates.includes(t.date));
-  const visibleTasks = weeklyTasks.filter(t => showCompleted || !t.completed);
+  const visibleTasks = tasks.filter(t => weekDates.includes(t.date) && (showCompleted || !t.completed));
 
-  const handleToggleComplete = (task: Task) => {
-    updateTask({ ...task, completed: !task.completed });
+  const toggleComplete = (taskId: string) => {
+    const task = tasks.find(t => t.taskId === taskId);
+    if (task) updateTask({ ...task, completed: !task.completed });
   };
+
+  const createEmptyTask = (): Task => ({
+    taskId: '',
+    title: '',
+    description: '',
+    date: new Date().toISOString().split('T')[0],
+    priority: 'medium',
+    completed: false,
+  });
 
   return (
     <div className="planner-container">
@@ -36,6 +45,7 @@ const PlannerPage: React.FC = () => {
           <button onClick={() => setWeekOffset(o => o + 1)}>Next →</button>
         </div>
       </div>
+
       <label className="toggle-completed">
         <input
           type="checkbox"
@@ -45,30 +55,44 @@ const PlannerPage: React.FC = () => {
         Show Completed Tasks
       </label>
 
-      <ul className="task-list">
-        {visibleTasks.map(t => (
-          <li key={t.taskId} className={`task-item ${t.completed ? 'completed' : ''}`}>
-            <span onClick={() => handleToggleComplete(t)} className="task-title">
-              {t.title}
-            </span>
-            <button onClick={() => setEditingTask(t)} className="edit-btn">Edit</button>
-          </li>
-        ))}
-      </ul>
+      <div className="weekly-grid">
+        {weekDates.map(date => {
+          const dateObj = new Date(date);
+          const label = `${dateObj.getMonth() + 1}/${dateObj.getDate()}`;
+          const weekday = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+          const dayTasks = visibleTasks.filter(task => task.date === date);
 
-      <button
-        className="add-button"
-        onClick={() =>
-          setEditingTask({
-            taskId: '',
-            title: '',
-            description: '',
-            date: new Date().toISOString().split('T')[0],
-            priority: 'medium',
-            completed: false,
-          })
-        }
-      >
+          return (
+            <div className="day-column" key={date}>
+              <div className="day-header">
+                <strong>{label}</strong>
+                <div className="weekday">{weekday}</div>
+              </div>
+              <ul className="day-tasks">
+                {dayTasks.map(task => (
+                  <li
+                    key={task.taskId}
+                    className={`task-item ${task.completed ? 'completed' : ''}`}
+                    onClick={() => toggleComplete(task.taskId)}
+                  >
+                    {task.title}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingTask(task);
+                      }}
+                    >
+                      ✎
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
+      </div>
+
+      <button className="add-button" onClick={() => setEditingTask(createEmptyTask())}>
         + Add Task
       </button>
 
