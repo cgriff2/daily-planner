@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as BrowserRouter, Routes, Route } from 'react-router-dom';
 import { TaskProvider } from './context/TaskContext';
 import { LocationProvider } from './context/LocationContext';
 import HomePage from './components/HomePage';
@@ -8,17 +8,17 @@ import PlannerPage from './components/PlannerPage';
 const App = () => {
 
   return (
-    <TaskProvider>
-      <LocationProvider>
-        <Router>
+    <BrowserRouter basename="/daily-planner">
+      <TaskProvider>
+        <LocationProvider>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/weather" element={<WeatherPage />} />
             <Route path="/planner" element={<PlannerPage />} />
           </Routes>
-        </Router>
-      </LocationProvider>
-    </TaskProvider>
+        </LocationProvider>
+      </TaskProvider>
+    </BrowserRouter>
   );
 };
 
