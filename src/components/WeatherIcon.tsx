@@ -1,14 +1,13 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import {
   Sun,
   Moon,
-  Cloud,
   CloudSun,
   CloudMoon,
   CloudRain,
   CloudSnow,
   Zap,
-  Snowflake,
   Wind,
   Droplets,
   CloudDrizzle,
