@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useTasks, Task } from '../context/TaskContext';
 import TaskForm from './TaskForm';
-import '../App.css';
+import TaskItem from './TaskItem';
 import { useNavigate } from 'react-router-dom';
+import '../App.css';
 
 const PlannerPage: React.FC = () => {
   const { tasks, updateTask } = useTasks();
@@ -20,21 +21,9 @@ const PlannerPage: React.FC = () => {
     return d.toISOString().split('T')[0];
   });
 
-  const visibleTasks = tasks.filter(t => weekDates.includes(t.date) && (showCompleted || !t.completed));
-
-  const toggleComplete = (taskId: string) => {
-    const task = tasks.find(t => t.taskId === taskId);
-    if (task) updateTask({ ...task, completed: !task.completed });
+  const handleToggleComplete = (task: Task) => {
+    updateTask({ ...task, completed: !task.completed });
   };
-
-  const createEmptyTask = (): Task => ({
-    taskId: '',
-    title: '',
-    description: '',
-    date: new Date().toISOString().split('T')[0],
-    priority: 'medium',
-    completed: false,
-  });
 
   return (
     <div className="planner-container">
@@ -45,7 +34,6 @@ const PlannerPage: React.FC = () => {
           <button onClick={() => setWeekOffset(o => o + 1)}>Next →</button>
         </div>
       </div>
-
       <label className="toggle-completed">
         <input
           type="checkbox"
@@ -57,34 +45,30 @@ const PlannerPage: React.FC = () => {
 
       <div className="weekly-grid">
         {weekDates.map(date => {
+          const dayTasks = tasks
+          .filter(task => task.date === date)
+          .filter(task => showCompleted || !task.completed);
           const dateObj = new Date(date);
           const label = `${dateObj.getMonth() + 1}/${dateObj.getDate()}`;
           const weekday = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
-          const dayTasks = visibleTasks.filter(task => task.date === date);
 
           return (
-            <div className="day-column" key={date}>
+            <div key={date} className="day-column">
               <div className="day-header">
                 <strong>{label}</strong>
                 <div className="weekday">{weekday}</div>
               </div>
               <ul className="day-tasks">
                 {dayTasks.map(task => (
-                  <li
+                  <TaskItem
                     key={task.taskId}
-                    className={`task-item ${task.completed ? 'completed' : ''}`}
-                    onClick={() => toggleComplete(task.taskId)}
-                  >
-                    {task.title}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setEditingTask(task);
-                      }}
-                    >
-                      ✎
-                    </button>
-                  </li>
+                    taskId={task.taskId}
+                    title={task.title}
+                    completed={task.completed}
+                    priority={task.priority}
+                    onToggleCompleted={() => handleToggleComplete(task)}
+                    onEdit={() => setEditingTask(task)}
+                  />
                 ))}
               </ul>
             </div>
@@ -92,9 +76,23 @@ const PlannerPage: React.FC = () => {
         })}
       </div>
 
-      <button className="add-button" onClick={() => setEditingTask(createEmptyTask())}>
-        + Add Task
-      </button>
+      {!editingTask && (
+        <button
+          className="add-button"
+          onClick={() =>
+            setEditingTask({
+              taskId: '',
+              title: '',
+              description: '',
+              date: new Date().toISOString().split('T')[0],
+              priority: 'medium',
+              completed: false,
+            })
+          }
+        >
+          + Add Task
+        </button>
+      )}
 
       {editingTask && (
         <TaskForm task={editingTask} closeForm={() => setEditingTask(null)} />

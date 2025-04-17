@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useCallback } from 'react';
 
 export type Task = {
   taskId: string;
@@ -27,39 +28,40 @@ export const useTasks = (): TaskContextType => {
   return context;
 };
 
+
+
 export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const LOCAL_STORAGE_KEY = 'tasks';
 
-  // Load from localStorage on mount
   useEffect(() => {
-    const saved = localStorage.getItem('tasks');
-    if (saved) {
-      setTasks(JSON.parse(saved));
+    try {
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (saved) setTasks(JSON.parse(saved));
+    } catch (err) {
+      console.error('Failed to parse tasks from localStorage:', err);
     }
   }, []);
 
-  // Save to localStorage when tasks change
   useEffect(() => {
-    localStorage.setItem('tasks', JSON.stringify(tasks));
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(tasks));
   }, [tasks]);
 
-  const addTask = (task: Task) => {
+  const addTask = useCallback((task: Task) => {
     setTasks(prev => [...prev, task]);
-  };
+  }, []);
 
-  const updateTask = (updatedTask: Task) => {
+  const updateTask = useCallback((updatedTask: Task) => {
     setTasks(prev => prev.map(t => (t.taskId === updatedTask.taskId ? updatedTask : t)));
-  };
+  }, []);
 
-  const toggleCompleted = (taskId: string) => {
-    setTasks(prev =>
-      prev.map(t => (t.taskId === taskId ? { ...t, completed: !t.completed } : t))
-    );
-  };
+  const toggleCompleted = useCallback((taskId: string) => {
+    setTasks(prev => prev.map(t => (t.taskId === taskId ? { ...t, completed: !t.completed } : t)));
+  }, []);
 
-  const deleteTask = (taskId: string) => {
+  const deleteTask = useCallback((taskId: string) => {
     setTasks(prev => prev.filter(t => t.taskId !== taskId));
-  };
+  }, []);
 
   return (
     <TaskContext.Provider value={{ tasks, addTask, updateTask, toggleCompleted, deleteTask }}>
@@ -67,3 +69,4 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     </TaskContext.Provider>
   );
 };
+

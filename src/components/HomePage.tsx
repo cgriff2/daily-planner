@@ -2,9 +2,12 @@ import React from 'react';
 import { useTasks } from '../context/TaskContext';
 import { useNavigate } from 'react-router-dom';
 import { useWeather } from '../hooks/useWeather';
+import { useLocation } from '../context/LocationContext';
+import WeatherIcon from './WeatherIcon';
 import '../App.css';
 
-const HomePage: React.FC<{ location: string }> = ({ location }) => {
+const HomePage: React.FC = () => {
+  const { location } = useLocation();
   const { currentWeather } = useWeather(location);
   const { tasks } = useTasks();
   const navigate = useNavigate();
@@ -32,13 +35,16 @@ const HomePage: React.FC<{ location: string }> = ({ location }) => {
           Go to Planner
         </button>
       )}
-
+      
       <div onClick={() => navigate('/weather')} className="weather-widget">
+        <h4>Current Weather in {location}:</h4>
         {currentWeather && (
-          <>
-            <img src={currentWeather.icon} alt={currentWeather.condition} />
-            <p>{currentWeather.temperature}°C - {currentWeather.condition}</p>
-          </>
+          <div className="weather-icon-row">
+            <WeatherIcon condition={currentWeather.condition} iconCode={currentWeather.iconCode} />
+            <p>
+              {Math.round(currentWeather.temperature)}°F - {currentWeather.condition}
+            </p>
+          </div>
         )}
       </div>
     </div>
